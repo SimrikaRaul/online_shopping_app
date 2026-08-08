@@ -1,0 +1,27 @@
+String welcomeTextStr = "Welcome to GemStore!";
+String welcomeDownTextStr = "The home for the fashionista";
+String getStarted = "Get Started";
+String shoppingNowStr = "Shopping now";
+String enterNameStr = 'Enter your name';
+String emailAddressStr = 'Email address';
+String passwordStr = 'Password';
+String confirmPasswordStr = 'Confirm password';
+String signUpStr = 'SIGN UP';
+String orSignUpStr = 'or sign up with';
+String alreadyHaveAccStr = 'Already have account? ';
+String loginStr = 'Log In';
+String createStr = "Create";
+String yourAccountStr = "your account";
+String logIntoStr = 'Log into';
+String forgotPasswordStr = 'Forgot Password?';
+String orlogInIntoStr = 'or log in with';
+String donotHaveAccountStr = "Don't have an account? ";
+String sendStr = "SEND";
+String enterYourEmailStr = 'enter your email here';
+String forgotPasswordText =
+    "Enter email associated with your account and we'll send and email with intructions to reset your password";
+String gemStoreStr = 'GemStore';
+String autumCollectionStr = 'Autumn\nCollection\n2021';
+String featureProductsStr = 'Feature Products';
+String showAllStr = 'Show all';
+String topCollectionStr = 'Top Collection';

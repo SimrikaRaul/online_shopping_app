@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1007954381387",
+    "project_id": "firstproject-e011d",
+    "storage_bucket": "firstproject-e011d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1007954381387:android:1daff68b2b0f84b6271bce",
+        "android_client_info": {
+          "package_name": "com.simrika.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC71fk4y3aMN1_CQcep-MHJd7eRSpWdbic"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
