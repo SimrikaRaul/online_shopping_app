@@ -5,5 +5,6 @@ class Routes {
   static const String loginRoute = "/login";
   static const String forgotPasswordRoute = "/forgotPassword";
   static const String homeRoute = "/home";
-  static const String bottomNavBarRoute = "/b0tttomNavBar";
+  static const String bottomNavBarRoute = "/botttomNavBar";
+   static const String addProductRoute = "/addProduct";
 }

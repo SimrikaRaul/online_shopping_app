@@ -21,7 +21,6 @@ class LoginServiceImpl implements LoginService {
       }
 
       final userDoc = querySnapshot.docs.first.data();
-
       if (userDoc["password"] != request.password) {
         return ApiResponse(
           message: "Incorrect password",
