@@ -3,12 +3,22 @@ import 'package:firebase_setup/core/response/api_response.dart';
 import 'package:firebase_setup/core/utils/status_utils.dart';
 import 'package:firebase_setup/feature/signup/model/signup_model.dart';
 import 'package:firebase_setup/feature/signup/service/signup_service.dart';
+import 'package:firebase_setup/network/network_service.dart';
 
 class SignupServiceImpl implements SignupService {
   @override
   @override
   Future<ApiResponse<dynamic>> signup(SignUpModel request) async {
     try {
+      //check the internet
+      final isConnected = await NetworkService.isConnected();
+      if (!isConnected) {
+        return ApiResponse(
+          message: "No Internet Connection",
+          type: StatusUtils.noInternet,
+        );
+      }
+      
       // Check if the email already exists
       final querySnapshot = await FirebaseFirestore.instance
           .collection("Signup")

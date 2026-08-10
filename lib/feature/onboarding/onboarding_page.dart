@@ -1,11 +1,37 @@
+import 'package:firebase_setup/core/utils/local_storage.dart';
 import 'package:firebase_setup/core/utils/string_consts.dart';
 import 'package:firebase_setup/route/route.dart';
 import 'package:firebase_setup/route/route_generator.dart';
 import 'package:firebase_setup/shared_widget/custom_elevated_button.dart';
 import 'package:flutter/material.dart';
 
-class OnboardingPage extends StatelessWidget {
+class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
+
+  @override
+  State<OnboardingPage> createState() => _OnboardingPageState();
+}
+
+class _OnboardingPageState extends State<OnboardingPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkLoginStatus();
+    });
+  }
+
+  Future<void> _checkLoginStatus() async {
+    bool isLoggedIn =
+        LocalStorage.getBoolValue(LocalStorage.isLoginStr) ?? false;
+    if (!mounted) return;
+    if (isLoggedIn) {
+      RouteGenerator.navigateToPageWithoutStack(
+        context,
+        Routes.bottomNavBarRoute,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +50,6 @@ class OnboardingPage extends StatelessWidget {
               ),
             ),
           ),
-
           Positioned(
             left: 24,
             right: 24,
@@ -46,9 +71,7 @@ class OnboardingPage extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white70, fontSize: 15),
                 ),
-
                 SizedBox(height: 60),
-
                 Center(
                   child: SizedBox(
                     width: 200,
@@ -68,7 +91,6 @@ class OnboardingPage extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 SizedBox(height: 30),
               ],
             ),

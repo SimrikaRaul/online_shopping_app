@@ -32,3 +32,6 @@ String priceStr = 'Price';
 String priceValidationStr = 'Price is required';
 String descriptionStr = 'Description';
 String saveProductStr = 'Save Product';
+String productAddedStr = 'Product added';
+String failedProductAddStr = 'Failed to add product';
+String taptoAddProductStr = 'Tap to add product image';

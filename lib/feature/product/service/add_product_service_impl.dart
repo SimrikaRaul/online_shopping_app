@@ -3,13 +3,22 @@ import 'package:firebase_setup/core/response/api_response.dart';
 import 'package:firebase_setup/core/utils/status_utils.dart';
 import 'package:firebase_setup/feature/product/model/add_product_model.dart';
 import 'package:firebase_setup/feature/product/service/add_product_service.dart';
+import 'package:firebase_setup/network/network_service.dart';
 
-
-class AddProductServiceImpl implements  AddProductService{
+class AddProductServiceImpl implements AddProductService {
   @override
   Future<ApiResponse<dynamic>> addProduct(AddProductModel request) async {
     try {
-      await FirebaseFirestore.instance.collection("Products").add(request.toJson());
+      final isConnected = await NetworkService.isConnected();
+      if (!isConnected) {
+        return ApiResponse(
+          message: "No Internet Connection",
+          type: StatusUtils.noInternet,
+        );
+      }
+      await FirebaseFirestore.instance
+          .collection("Products")
+          .add(request.toJson());
 
       return ApiResponse(
         message: "Product added successfully",

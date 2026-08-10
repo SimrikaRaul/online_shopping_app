@@ -8,10 +8,14 @@ import 'package:firebase_setup/feature/signup/bloc/signup_bloc.dart';
 import 'package:firebase_setup/feature/signup/service/signup_service.dart';
 import 'package:firebase_setup/feature/signup/service/signup_service_impl.dart';
 import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final getIt = GetIt.instance;
 
 Future<void> setupLocator() async {
+  //core
+  final sharedPreferences = await SharedPreferences.getInstance();
+  getIt.registerLazySingleton<SharedPreferences>(() => sharedPreferences);
   // Services
   getIt.registerLazySingleton<SignupService>(() => SignupServiceImpl());
   getIt.registerLazySingleton<LoginService>(() => LoginServiceImpl());

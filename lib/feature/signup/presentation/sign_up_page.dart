@@ -6,6 +6,7 @@ import 'package:firebase_setup/feature/signup/bloc/signup_bloc.dart';
 import 'package:firebase_setup/feature/signup/bloc/signup_event.dart';
 import 'package:firebase_setup/feature/signup/bloc/signup_state.dart';
 import 'package:firebase_setup/shared_widget/custom_textformfield.dart';
+import 'package:firebase_setup/shared_widget/no_internet_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_setup/shared_widget/custom_elevated_button.dart';
@@ -20,16 +21,56 @@ class SignUpPage extends StatelessWidget {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  void _submit(BuildContext context) {
+    if (_formKey.currentState!.validate()) {
+      _dispatch(context);
+    }
+  }
+
+  // Retry from NoInternetPage — Form is unmounted, skip validate()
+  void _retry(BuildContext context) {
+    _dispatch(context);
+  }
+
+  void _dispatch(BuildContext context) {
+    context.read<SignUpBloc>().add(
+      SignupButtonEvent(
+        name: _nameController.text,
+        emailAddress: _emailController.text,
+        password: _passwordController.text,
+        confirmPassword: _confirmPasswordController.text,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<SignUpBloc, SignUpState>(
+      body: BlocConsumer<SignUpBloc, SignUpState>(
+        listener: (context, state) {
+          if (state.status == StatusUtils.success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message ?? 'Signed up successfully')),
+            );
+            RouteGenerator.navigateToPageWithoutStack(context, Routes.loginRoute);
+          } else if (state.status == StatusUtils.failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message ?? 'Signup failed')),
+            );
+          }
+        },
         builder: (context, state) {
+          if (state.status == StatusUtils.noInternet) {
+            return NoInternetPage(
+              onPressed: () => _retry(context),
+            );
+          }
+
           final isLoading = state.status == StatusUtils.loading;
-          return Stack(
-            children: [
-              SafeArea(
-                child: SingleChildScrollView(
+          return SafeArea(
+            child: Stack(
+              children: [
+                SingleChildScrollView(
                   padding: EdgeInsets.symmetric(horizontal: 20),
                   child: Form(
                     key: _formKey,
@@ -69,38 +110,11 @@ class SignUpPage extends StatelessWidget {
                               Validators.confirmPassword(value, _passwordController.text),
                         ),
                         SizedBox(height: 60),
-                        BlocListener<SignUpBloc, SignUpState>(
-                          listener: (context, state) {
-                            if (state.status == StatusUtils.success) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(state.message ?? 'Signed up successfully')),
-                              );
-                              RouteGenerator.navigateToPageWithoutStack(context, Routes.loginRoute);
-                            } else if (state.status == StatusUtils.failure) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(state.message ?? 'Signup failed')),
-                              );
-                            }
-                          },
-                          child: CustomElevatedButton(
-                            text: signUpStr,
-                            backgroundColor: Colors.black,
-                            borderRadius: 30,
-                            onPressed: isLoading
-                                ? null
-                                : () {
-                                    if (_formKey.currentState!.validate()) {
-                                      context.read<SignUpBloc>().add(
-                                        SignupButtonEvent(
-                                          name: _nameController.text,
-                                          emailAddress: _emailController.text,
-                                          password: _passwordController.text,
-                                          confirmPassword: _confirmPasswordController.text,
-                                        ),
-                                      );
-                                    }
-                                  },
-                          ),
+                        CustomElevatedButton(
+                          text: signUpStr,
+                          backgroundColor: Colors.black,
+                          borderRadius: 30,
+                          onPressed: isLoading ? null : () => _submit(context),
                         ),
                         SizedBox(height: 40),
                         Center(child: Text(orSignUpStr, style: TextStyle(color: Colors.black54))),
@@ -143,9 +157,9 @@ class SignUpPage extends StatelessWidget {
                     ),
                   ),
                 ),
-              ),
-              if (isLoading) backdropFilter(context),
-            ],
+                if (isLoading) backdropFilter(context),
+              ],
+            ),
           );
         },
       ),

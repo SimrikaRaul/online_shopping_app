@@ -6,6 +6,7 @@ import 'package:firebase_setup/feature/login/bloc/login_bloc.dart';
 import 'package:firebase_setup/feature/login/bloc/login_event.dart';
 import 'package:firebase_setup/feature/login/bloc/login_state.dart';
 import 'package:firebase_setup/shared_widget/custom_textformfield.dart';
+import 'package:firebase_setup/shared_widget/no_internet_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_setup/shared_widget/custom_elevated_button.dart';
@@ -19,16 +20,50 @@ class LoginPage extends StatelessWidget {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  void _submit(BuildContext context) {
+    if (_formKey.currentState!.validate()) {
+      _dispatch(context);
+    }
+  }
+
+  void _retry(BuildContext context) {
+    _dispatch(context);
+  }
+
+  void _dispatch(BuildContext context) {
+    context.read<LoginBloc>().add(
+      LoginButtonEvent(
+        email: _emailController.text,
+        password: _passwordController.text,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<LoginBloc, LoginState>(
+      body: BlocConsumer<LoginBloc, LoginState>(
+        listener: (context, state) {
+          if (state.status == StatusUtils.success) {
+            RouteGenerator.navigateToPageWithoutStack(context, Routes.bottomNavBarRoute);
+          } else if (state.status == StatusUtils.failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message ?? 'Login failed')),
+            );
+          }
+        },
         builder: (context, state) {
+          if (state.status == StatusUtils.noInternet) {
+            return NoInternetPage(
+              onPressed: () => _retry(context),
+            );
+          }
+
           final isLoading = state.status == StatusUtils.loading;
-          return Stack(
-            children: [
-              SafeArea(
-                child: LayoutBuilder(
+          return SafeArea(
+            child: Stack(
+              children: [
+                LayoutBuilder(
                   builder: (context, constraints) {
                     return SingleChildScrollView(
                       padding: EdgeInsets.symmetric(horizontal: 20),
@@ -67,33 +102,11 @@ class LoginPage extends StatelessWidget {
                                   ),
                                 ),
                                 SizedBox(height: 40),
-                                BlocListener<LoginBloc, LoginState>(
-                                  listener: (context, state) {
-                                    if (state.status == StatusUtils.success) {
-                                      RouteGenerator.navigateToPageWithoutStack(context, Routes.bottomNavBarRoute);
-                                    } else if (state.status == StatusUtils.failure) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text(state.message ?? 'Login failed')),
-                                      );
-                                    }
-                                  },
-                                  child: CustomElevatedButton(
-                                    text: loginStr,
-                                    backgroundColor: Colors.black,
-                                    borderRadius: 30,
-                                    onPressed: isLoading
-                                        ? null
-                                        : () {
-                                            if (_formKey.currentState!.validate()) {
-                                              context.read<LoginBloc>().add(
-                                                LoginButtonEvent(
-                                                  email: _emailController.text,
-                                                  password: _passwordController.text,
-                                                ),
-                                              );
-                                            }
-                                          },
-                                  ),
+                                CustomElevatedButton(
+                                  text: loginStr,
+                                  backgroundColor: Colors.black,
+                                  borderRadius: 30,
+                                  onPressed: isLoading ? null : () => _submit(context),
                                 ),
                                 SizedBox(height: 24),
                                 Center(child: Text(orlogInIntoStr, style: TextStyle(color: Colors.black54))),
@@ -135,9 +148,9 @@ class LoginPage extends StatelessWidget {
                     );
                   },
                 ),
-              ),
-              if (isLoading) backdropFilter(context),
-            ],
+                if (isLoading) backdropFilter(context),
+              ],
+            ),
           );
         },
       ),
