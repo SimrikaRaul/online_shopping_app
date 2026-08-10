@@ -1,3 +1,4 @@
+import 'package:firebase_setup/core/utils/cloudinary_service.dart';
 import 'package:firebase_setup/feature/login/bloc/login_bloc.dart';
 import 'package:firebase_setup/feature/login/service/login_service.dart';
 import 'package:firebase_setup/feature/login/service/login_service_impl.dart';
@@ -20,8 +21,9 @@ Future<void> setupLocator() async {
   getIt.registerLazySingleton<SignupService>(() => SignupServiceImpl());
   getIt.registerLazySingleton<LoginService>(() => LoginServiceImpl());
   getIt.registerLazySingleton<AddProductService>(() => AddProductServiceImpl());
+  getIt.registerLazySingleton<CloudinaryService>(() => CloudinaryService());
   // Bloc
   getIt.registerFactory<SignUpBloc>(() => SignUpBloc(getIt()));
   getIt.registerFactory<LoginBloc>(() => LoginBloc(getIt()));
-  getIt.registerFactory<AddProductBloc>(() => AddProductBloc(getIt()));
+  getIt.registerFactory<AddProductBloc>(() => AddProductBloc(getIt(),getIt()));
 }
