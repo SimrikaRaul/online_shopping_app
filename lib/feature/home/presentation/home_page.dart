@@ -1,6 +1,11 @@
+import 'package:firebase_setup/core/utils/status_utils.dart';
 import 'package:firebase_setup/core/utils/string_consts.dart';
+import 'package:firebase_setup/feature/product/bloc/add_product_bloc.dart';
+import 'package:firebase_setup/feature/product/bloc/add_product_event.dart';
+import 'package:firebase_setup/feature/product/bloc/add_product_state.dart';
 import 'package:firebase_setup/shared_widget/top_category_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -33,20 +38,11 @@ class _HomePageState extends State<HomePage> {
     {'img': 'assets/images/p3.jpg', 'name': 'Sportwear', 'price': '80.00'},
   ];
 
-  final _recommended = [
-    {
-      'img': 'assets/images/r1.png',
-      'name': 'White fashion hoodie',
-      'price': '29.00',
-    },
-    {'img': 'assets/images/r2.png', 'name': 'Cotton tee', 'price': '30.00'},
-
-    {
-      "img": "assets/images/r1.png",
-      "name": "White fashion hoodie",
-      "price": "29.00",
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    context.read<AddProductBloc>().add(FetchProductsEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -243,63 +239,95 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               SizedBox(height: 16),
-              SizedBox(
-                height: 130,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: _recommended.length,
-                  itemBuilder: (context, index) {
-                    final p = _recommended[index];
-                    return Container(
-                      margin: EdgeInsets.only(right: 16),
-                      width: 260,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.black12),
-                      ),
-                      child: Row(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(16),
-                              bottomLeft: Radius.circular(16),
-                            ),
-                            child: Image.asset(
-                              p['img']!,
-                              width: 100,
-                              height: 130,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  p['name']!,
-                                  style: TextStyle(fontSize: 15),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                SizedBox(height: 6),
-                                Text(
-                                  '\$ ${p['price']}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+              BlocBuilder<AddProductBloc, AddProductState>(
+                builder: (context, state) {
+                  if (state.status == StatusUtils.loading) {
+                    return SizedBox(
+                      height: 130,
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+                  if (state.status == StatusUtils.failure ||
+                      state.status == StatusUtils.noInternet) {
+                    return SizedBox(
+                      height: 130,
+                      child: Center(
+                        child: Text(state.message ?? 'Failed to load products'),
                       ),
                     );
-                  },
-                ),
+                  }
+
+                  if (state.products.isEmpty) {
+                    return SizedBox(
+                      height: 130,
+                      child: Center(child: Text('No products yet')),
+                    );
+                  }
+                  return SizedBox(
+                    height: 130,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: state.products.length,
+                      itemBuilder: (context, index) {
+                        final p = state.products[index];
+                        return Container(
+                          margin: EdgeInsets.only(right: 16),
+                          width: 260,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.black12),
+                          ),
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(16),
+                                  bottomLeft: Radius.circular(16),
+                                ),
+                                child: Image.network(
+                                  p.imageUrl,
+                                  width: 100,
+                                  height: 130,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Container(
+                                        width: 100,
+                                        height: 130,
+                                        color: Colors.grey[200],
+                                      ),
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      p.name,
+                                      style: TextStyle(fontSize: 15),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    SizedBox(height: 6),
+                                    Text(
+                                      '\$ ${p.price}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
               SizedBox(height: 24),
               Padding(
@@ -344,6 +372,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
+              SizedBox(height: 20),
             ],
           ),
         ),

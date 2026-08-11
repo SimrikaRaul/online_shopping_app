@@ -27,33 +27,36 @@ class _AddProductPageState extends State<AddProductPage> {
 
   File? _selectedImage;
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImage(BuildContext context) async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (pickedFile != null) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-      });
+      context.read<AddProductBloc>().add(
+        ImagePickedEvent(File(pickedFile.path)),
+      );
     }
   }
 
-  void _submit(BuildContext context) {
+  void _submit(BuildContext context, AddProductState state) {
     if (_formKey.currentState!.validate()) {
-      _dispatch(context);
+      _dispatch(context, state);
     }
   }
 
-  void _retry(BuildContext context) {
-    _dispatch(context);
+  void _retry(BuildContext context, AddProductState state) {
+    _dispatch(context, state);
   }
 
-  void _dispatch(BuildContext context) {
+  void _dispatch(BuildContext context, AddProductState state) {
     context.read<AddProductBloc>().add(
       AddProductButtonEvent(
         name: _nameController.text,
         price: _priceController.text,
         description: _descriptionController.text,
-        imageFile: _selectedImage,
+        imageFile: state.selectedImage,
       ),
     );
   }
@@ -68,6 +71,7 @@ class _AddProductPageState extends State<AddProductPage> {
         elevation: 0,
       ),
       body: BlocConsumer<AddProductBloc, AddProductState>(
+        listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
           if (state.status == StatusUtils.success) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -82,9 +86,7 @@ class _AddProductPageState extends State<AddProductPage> {
         },
         builder: (context, state) {
           if (state.status == StatusUtils.noInternet) {
-            return NoInternetPage(
-              onPressed: () => _retry(context),
-            );
+            return NoInternetPage(onPressed: () => _retry(context, state));
           }
 
           final isLoading = state.status == StatusUtils.loading;
@@ -99,7 +101,7 @@ class _AddProductPageState extends State<AddProductPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         GestureDetector(
-                          onTap: _pickImage,
+                          onTap: () => _pickImage(context),
                           child: Container(
                             height: 180,
                             width: double.infinity,
@@ -108,19 +110,26 @@ class _AddProductPageState extends State<AddProductPage> {
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.black12),
                             ),
-                            child: _selectedImage == null
+                            child: state.selectedImage == null
                                 ? Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.add_a_photo_outlined, color: Colors.black45, size: 32),
+                                      Icon(
+                                        Icons.add_a_photo_outlined,
+                                        color: Colors.black45,
+                                        size: 32,
+                                      ),
                                       SizedBox(height: 8),
-                                      Text(taptoAddProductStr, style: TextStyle(color: Colors.black45)),
+                                      Text(
+                                        taptoAddProductStr,
+                                        style: TextStyle(color: Colors.black45),
+                                      ),
                                     ],
                                   )
                                 : ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
                                     child: Image.file(
-                                      _selectedImage!,
+                                      state.selectedImage!,
                                       height: 180,
                                       width: double.infinity,
                                       fit: BoxFit.cover,
@@ -133,14 +142,18 @@ class _AddProductPageState extends State<AddProductPage> {
                           hintText: productNameStr,
                           controller: _nameController,
                           validator: (value) =>
-                              value == null || value.trim().isEmpty ? productNameValidationStr : null,
+                              value == null || value.trim().isEmpty
+                              ? productNameValidationStr
+                              : null,
                         ),
                         CustomTextformField(
                           hintText: priceStr,
                           controller: _priceController,
                           keyboardType: TextInputType.number,
                           validator: (value) =>
-                              value == null || value.trim().isEmpty ? priceValidationStr : null,
+                              value == null || value.trim().isEmpty
+                              ? priceValidationStr
+                              : null,
                         ),
                         CustomTextformField(
                           hintText: descriptionStr,
@@ -152,7 +165,9 @@ class _AddProductPageState extends State<AddProductPage> {
                           text: saveProductStr,
                           backgroundColor: Colors.black,
                           borderRadius: 30,
-                          onPressed: isLoading ? null : () => _submit(context),
+                          onPressed: isLoading
+                              ? null
+                              : () => _submit(context, state),
                         ),
                       ],
                     ),

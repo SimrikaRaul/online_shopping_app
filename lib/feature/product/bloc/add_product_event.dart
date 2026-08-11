@@ -22,3 +22,24 @@ class AddProductButtonEvent extends AddProductEvent {
   @override
   List<Object?> get props => [name, price, description, imageFile];
 }
+
+class FetchProductsEvent extends AddProductEvent {}
+
+class ImagePickedEvent extends AddProductEvent {
+  final File image;
+
+  ImagePickedEvent(this.image);
+
+  @override
+  List<Object?> get props => [image];
+}
+
+
+class DeleteProductEvent extends AddProductEvent {
+  final String id;
+
+  DeleteProductEvent(this.id);
+
+  @override
+  List<Object?> get props => [id];
+}
