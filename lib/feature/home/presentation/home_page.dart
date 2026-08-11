@@ -44,6 +44,29 @@ class _HomePageState extends State<HomePage> {
     context.read<AddProductBloc>().add(FetchProductsEvent());
   }
 
+  void _confirmDelete(BuildContext context, String id, String name) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Delete Product'),
+        content: Text('Are you sure you want to delete "$name"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.read<AddProductBloc>().add(DeleteProductEvent(id));
+            },
+            child: Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -273,7 +296,7 @@ class _HomePageState extends State<HomePage> {
                         final p = state.products[index];
                         return Container(
                           margin: EdgeInsets.only(right: 16),
-                          width: 260,
+                          width: 280,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(color: Colors.black12),
@@ -320,6 +343,33 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ],
                                 ),
+                              ),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.edit_outlined,
+                                      size: 18,
+                                      color: Colors.black54,
+                                    ),
+                                    onPressed: () {
+                                      // TODO: navigate to an edit page pre-filled with p's values
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.delete_outline,
+                                      size: 18,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () => _confirmDelete(
+                                      context,
+                                      p.id!,
+                                      p.name,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
