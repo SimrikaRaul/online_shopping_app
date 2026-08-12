@@ -3,6 +3,7 @@ import 'package:firebase_setup/core/utils/string_consts.dart';
 import 'package:firebase_setup/feature/product/bloc/add_product_bloc.dart';
 import 'package:firebase_setup/feature/product/bloc/add_product_event.dart';
 import 'package:firebase_setup/feature/product/bloc/add_product_state.dart';
+import 'package:firebase_setup/feature/product/presentation/add_product_page.dart';
 import 'package:firebase_setup/shared_widget/top_category_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -354,7 +355,13 @@ class _HomePageState extends State<HomePage> {
                                       color: Colors.black54,
                                     ),
                                     onPressed: () {
-                                      // TODO: navigate to an edit page pre-filled with p's values
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              AddProductPage(product: p),
+                                        ),
+                                      );
                                     },
                                   ),
                                   IconButton(
@@ -363,11 +370,8 @@ class _HomePageState extends State<HomePage> {
                                       size: 18,
                                       color: Colors.red,
                                     ),
-                                    onPressed: () => _confirmDelete(
-                                      context,
-                                      p.id!,
-                                      p.name,
-                                    ),
+                                    onPressed: () =>
+                                        _confirmDelete(context, p.id!, p.name),
                                   ),
                                 ],
                               ),

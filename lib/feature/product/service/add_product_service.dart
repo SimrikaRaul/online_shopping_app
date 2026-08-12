@@ -6,4 +6,5 @@ abstract class AddProductService {
   Future<ApiResponse<dynamic>> addProduct(AddProductModel request);
   Future<ApiResponse<List<ProductModel>>> getProducts();
   Future<ApiResponse<dynamic>> deleteProduct(String id);
+  Future<ApiResponse<dynamic>> updateProduct(ProductModel request);
 }

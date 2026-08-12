@@ -68,10 +68,30 @@ class AddProductServiceImpl implements AddProductService {
           type: StatusUtils.noInternet,
         );
       }
-
       await FirebaseFirestore.instance.collection("Products").doc(id).delete();
-
       return ApiResponse(message: "Product deleted", type: StatusUtils.success);
+    } catch (e) {
+      return ApiResponse(message: e.toString(), type: StatusUtils.failure);
+    }
+  }
+
+  @override
+  Future<ApiResponse<dynamic>> updateProduct(ProductModel request) async {
+    try {
+      final isConnected = await NetworkService.isConnected();
+      if (!isConnected) {
+        return ApiResponse(
+          message: "No Internet Connection",
+          type: StatusUtils.noInternet,
+        );
+      }
+
+      await FirebaseFirestore.instance
+          .collection("Products")
+          .doc(request.id)
+          .update(request.toJson());
+
+      return ApiResponse(message: "Product updated", type: StatusUtils.success);
     } catch (e) {
       return ApiResponse(message: e.toString(), type: StatusUtils.failure);
     }

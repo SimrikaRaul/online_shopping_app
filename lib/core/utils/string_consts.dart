@@ -35,3 +35,6 @@ String saveProductStr = 'Save Product';
 String productAddedStr = 'Product added';
 String failedProductAddStr = 'Failed to add product';
 String taptoAddProductStr = 'Tap to add product image';
+String updateProductStr = 'Update Product';
+String editProductStr = 'Edit Product';
+String productUpdateStr = 'Product updated';

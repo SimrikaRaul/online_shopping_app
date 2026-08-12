@@ -5,6 +5,7 @@ import 'package:firebase_setup/core/utils/string_consts.dart';
 import 'package:firebase_setup/feature/product/bloc/add_product_bloc.dart';
 import 'package:firebase_setup/feature/product/bloc/add_product_event.dart';
 import 'package:firebase_setup/feature/product/bloc/add_product_state.dart';
+import 'package:firebase_setup/feature/product/model/product_model.dart';
 import 'package:firebase_setup/shared_widget/no_internet_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,7 +14,9 @@ import 'package:firebase_setup/shared_widget/custom_textformfield.dart';
 import 'package:firebase_setup/shared_widget/custom_elevated_button.dart';
 
 class AddProductPage extends StatefulWidget {
-  AddProductPage({super.key});
+  final ProductModel? product; // null = add mode, non-null = edit mode
+
+  AddProductPage({super.key, this.product});
 
   @override
   State<AddProductPage> createState() => _AddProductPageState();
@@ -21,51 +24,63 @@ class AddProductPage extends StatefulWidget {
 
 class _AddProductPageState extends State<AddProductPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _priceController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  late TextEditingController _nameController;
+  late TextEditingController _priceController;
+  late TextEditingController _descriptionController;
 
-  File? _selectedImage;
+  bool get isEditMode => widget.product != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.product?.name ?? '');
+    _priceController = TextEditingController(text: widget.product?.price ?? '');
+    _descriptionController = TextEditingController(text: widget.product?.description ?? '');
+  }
 
   Future<void> _pickImage(BuildContext context) async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80,
-    );
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (pickedFile != null) {
-      context.read<AddProductBloc>().add(
-        ImagePickedEvent(File(pickedFile.path)),
-      );
+      context.read<AddProductBloc>().add(ImagePickedEvent(File(pickedFile.path)));
     }
   }
 
-  void _submit(BuildContext context, AddProductState state) {
+  void _submit(BuildContext context, File? selectedImage) {
     if (_formKey.currentState!.validate()) {
-      _dispatch(context, state);
+      if (isEditMode) {
+        context.read<AddProductBloc>().add(
+          UpdateProductButtonEvent(
+            id: widget.product!.id!,
+            name: _nameController.text,
+            price: _priceController.text,
+            description: _descriptionController.text,
+            existingImageUrl: widget.product!.imageUrl,
+            imageFile: selectedImage,
+          ),
+        );
+      } else {
+        context.read<AddProductBloc>().add(
+          AddProductButtonEvent(
+            name: _nameController.text,
+            price: _priceController.text,
+            description: _descriptionController.text,
+            imageFile: selectedImage,
+          ),
+        );
+      }
     }
   }
 
-  void _retry(BuildContext context, AddProductState state) {
-    _dispatch(context, state);
-  }
-
-  void _dispatch(BuildContext context, AddProductState state) {
-    context.read<AddProductBloc>().add(
-      AddProductButtonEvent(
-        name: _nameController.text,
-        price: _priceController.text,
-        description: _descriptionController.text,
-        imageFile: state.selectedImage,
-      ),
-    );
+  void _retry(BuildContext context, File? selectedImage) {
+    _submit(context, selectedImage);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(addProductsStr),
+        title: Text(isEditMode ? editProductStr : addProductsStr),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -75,7 +90,7 @@ class _AddProductPageState extends State<AddProductPage> {
         listener: (context, state) {
           if (state.status == StatusUtils.success) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message ?? productAddedStr)),
+              SnackBar(content: Text(state.message ?? (isEditMode ? productUpdateStr : productAddedStr))),
             );
             Navigator.pop(context);
           } else if (state.status == StatusUtils.failure) {
@@ -86,10 +101,12 @@ class _AddProductPageState extends State<AddProductPage> {
         },
         builder: (context, state) {
           if (state.status == StatusUtils.noInternet) {
-            return NoInternetPage(onPressed: () => _retry(context, state));
+            return NoInternetPage(onPressed: () => _retry(context, state.selectedImage));
           }
 
           final isLoading = state.status == StatusUtils.loading;
+          final selectedImage = state.selectedImage;
+
           return Stack(
             children: [
               SafeArea(
@@ -110,31 +127,20 @@ class _AddProductPageState extends State<AddProductPage> {
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.black12),
                             ),
-                            child: state.selectedImage == null
-                                ? Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.add_a_photo_outlined,
-                                        color: Colors.black45,
-                                        size: 32,
-                                      ),
-                                      SizedBox(height: 8),
-                                      Text(
-                                        taptoAddProductStr,
-                                        style: TextStyle(color: Colors.black45),
-                                      ),
-                                    ],
-                                  )
-                                : ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.file(
-                                      state.selectedImage!,
-                                      height: 180,
-                                      width: double.infinity,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: selectedImage != null
+                                  ? Image.file(selectedImage, height: 180, width: double.infinity, fit: BoxFit.cover)
+                                  : (isEditMode && widget.product!.imageUrl.isNotEmpty)
+                                      ? Image.network(
+                                          widget.product!.imageUrl,
+                                          height: 180,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (c, e, s) => _placeholder(),
+                                        )
+                                      : _placeholder(),
+                            ),
                           ),
                         ),
                         SizedBox(height: 20),
@@ -142,18 +148,14 @@ class _AddProductPageState extends State<AddProductPage> {
                           hintText: productNameStr,
                           controller: _nameController,
                           validator: (value) =>
-                              value == null || value.trim().isEmpty
-                              ? productNameValidationStr
-                              : null,
+                              value == null || value.trim().isEmpty ? productNameValidationStr : null,
                         ),
                         CustomTextformField(
                           hintText: priceStr,
                           controller: _priceController,
                           keyboardType: TextInputType.number,
                           validator: (value) =>
-                              value == null || value.trim().isEmpty
-                              ? priceValidationStr
-                              : null,
+                              value == null || value.trim().isEmpty ? priceValidationStr : null,
                         ),
                         CustomTextformField(
                           hintText: descriptionStr,
@@ -162,12 +164,10 @@ class _AddProductPageState extends State<AddProductPage> {
                         ),
                         SizedBox(height: 20),
                         CustomElevatedButton(
-                          text: saveProductStr,
+                          text: isEditMode ? updateProductStr : saveProductStr,
                           backgroundColor: Colors.black,
                           borderRadius: 30,
-                          onPressed: isLoading
-                              ? null
-                              : () => _submit(context, state),
+                          onPressed: isLoading ? null : () => _submit(context, selectedImage),
                         ),
                       ],
                     ),
@@ -179,6 +179,17 @@ class _AddProductPageState extends State<AddProductPage> {
           );
         },
       ),
+    );
+  }
+
+  Widget _placeholder() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.add_a_photo_outlined, color: Colors.black45, size: 32),
+        SizedBox(height: 8),
+        Text(taptoAddProductStr, style: TextStyle(color: Colors.black45)),
+      ],
     );
   }
 }
