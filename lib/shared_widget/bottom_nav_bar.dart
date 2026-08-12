@@ -1,4 +1,5 @@
 import 'package:firebase_setup/feature/profile/presentation/profile_page.dart';
+import 'package:firebase_setup/feature/search/presentation/search_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_setup/feature/home/presentation/home_page.dart';
 
@@ -14,7 +15,7 @@ class _BottomNavState extends State<BottomNavbar> {
 
   final List<Widget> widgetList = [
     HomePage(),
-    Center(child: Text('Search')),
+    SearchPage(),
     Center(child: Text('Bag')),
     ProfilePage(),
   ];

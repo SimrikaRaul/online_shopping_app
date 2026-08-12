@@ -38,3 +38,5 @@ String taptoAddProductStr = 'Tap to add product image';
 String updateProductStr = 'Update Product';
 String editProductStr = 'Edit Product';
 String productUpdateStr = 'Product updated';
+String searchProductsStr = 'Search products';
+String searchProductForStr = 'Search for a product';
