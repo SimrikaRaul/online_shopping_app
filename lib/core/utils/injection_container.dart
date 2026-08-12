@@ -5,6 +5,7 @@ import 'package:firebase_setup/feature/login/service/login_service_impl.dart';
 import 'package:firebase_setup/feature/product/bloc/add_product_bloc.dart';
 import 'package:firebase_setup/feature/product/service/add_product_service.dart';
 import 'package:firebase_setup/feature/product/service/add_product_service_impl.dart';
+import 'package:firebase_setup/feature/search/bloc/search_bloc.dart';
 import 'package:firebase_setup/feature/signup/bloc/signup_bloc.dart';
 import 'package:firebase_setup/feature/signup/service/signup_service.dart';
 import 'package:firebase_setup/feature/signup/service/signup_service_impl.dart';
@@ -25,5 +26,8 @@ Future<void> setupLocator() async {
   // Bloc
   getIt.registerFactory<SignUpBloc>(() => SignUpBloc(getIt()));
   getIt.registerFactory<LoginBloc>(() => LoginBloc(getIt()));
-  getIt.registerFactory<AddProductBloc>(() => AddProductBloc(getIt(),getIt()));
+  getIt.registerFactory<AddProductBloc>(() => AddProductBloc(getIt(), getIt()));
+  getIt.registerFactory<SearchBloc>(
+    () => SearchBloc(getIt<AddProductService>()),
+  );
 }

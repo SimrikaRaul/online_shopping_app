@@ -3,6 +3,7 @@ import 'package:firebase_setup/core/utils/injection_container.dart';
 import 'package:firebase_setup/feature/login/bloc/login_bloc.dart';
 import 'package:firebase_setup/feature/onboarding/onboarding_page.dart';
 import 'package:firebase_setup/feature/product/bloc/add_product_bloc.dart';
+import 'package:firebase_setup/feature/search/bloc/search_bloc.dart';
 import 'package:firebase_setup/feature/signup/bloc/signup_bloc.dart';
 import 'package:firebase_setup/firebase_options.dart';
 import 'package:firebase_setup/route/route_generator.dart';
@@ -28,6 +29,7 @@ class MyApp extends StatelessWidget {
         BlocProvider<LoginBloc>(create: (context) => getIt<LoginBloc>()),
         BlocProvider<AddProductBloc>(create: (context) => getIt<AddProductBloc>(),
         ),
+        BlocProvider<SearchBloc>(create: (context) => getIt<SearchBloc>()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
